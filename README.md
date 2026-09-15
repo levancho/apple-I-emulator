@@ -2,6 +2,8 @@
 
 > Woz's garage board, minus the garage. A real 6502 CPU emulator running behind a period-accurate hex monitor, wearing the wood-cased unit's face.
 
+**Live at [apple1.l3v.ai](https://apple1.l3v.ai)** — no install, runs entirely in the browser.
+
 No OS. No file system. No undo. Boots straight to a blinking `\` and waits for you to type hex like it's July 1976.
 
 ## What's actually running
@@ -61,19 +63,28 @@ npx serve .
 
 Open `http://localhost:8080` and start typing.
 
-## Deploying (Cloudflare Pages)
+## Deploying
 
-Follows the same Wrangler pattern as the rest of the `l3v.ai` sites (deployed independently of this GitHub repo — Cloudflare Pages project name doesn't need to match the repo name):
-
-```bash
-npx wrangler pages deploy . --project-name=l3v-apple1-site
-```
-
-Then attach the custom domain (`apple1.l3v.ai`) to the Pages project from the Cloudflare dashboard, or:
+Live at **https://apple1.l3v.ai**, served by Cloudflare as a Workers assets project
+(`l3v-apple1-site`). The Pages CLI now delegates to Workers, so deploy with:
 
 ```bash
-npx wrangler pages domain add apple1.l3v.ai --project-name=l3v-apple1-site
+npx wrangler deploy
 ```
+
+`wrangler.jsonc` in this repo pins the project name and attaches the custom domain via
+a `routes` entry, so the domain does not need a separate command:
+
+```jsonc
+"routes": [{ "pattern": "apple1.l3v.ai", "custom_domain": true }]
+```
+
+Two things to know if you change this:
+
+- `wrangler pages domain add` does **not** exist in Wrangler 4.x. The `routes` entry
+  above replaces it.
+- The assets directory is the repo root, so `.assetsignore` is what keeps `.git` from
+  being published. Without it, the whole repository is served publicly.
 
 ## Known limitations
 
