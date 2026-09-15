@@ -1,0 +1,941 @@
+<title>Apple I Terminal</title>
+<style>
+  :root{
+    --wood-dark:#241609;
+    --wood:#5a3823;
+    --wood-mid:#6e4830;
+    --wood-light:#8a5f3e;
+    --crt-glass:#081208;
+    --phosphor:#49ff86;
+    --phosphor-dim:#1f7a44;
+    --phosphor-faint:rgba(73,255,134,.14);
+    --brass:#c7a054;
+    --brass-dim:#8a6f3c;
+    --bench:#14181b;
+    --bench-2:#1d2327;
+    --paper:#e9e1d1;
+    --paper-2:#ddd3bd;
+    --ink:#2a2016;
+    --muted:#71624a;
+    --rule:#c7b998;
+    --danger:#b5482f;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:
+      radial-gradient(120% 100% at 50% -10%, var(--bench-2), var(--bench) 65%);
+    color:var(--paper);
+    font-family:"IBM Plex Sans",system-ui,sans-serif;
+    min-height:100%;
+    padding-inline:16px;
+    padding-block:32px;
+  }
+
+  h1,h2,h3{margin:0;}
+
+  .wrap{
+    max-width:1180px;
+    margin-inline:auto;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+
+  .eyebrow{
+    font-family:"Oswald",sans-serif;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    font-size:.72rem;
+    color:var(--phosphor-dim);
+  }
+
+  .bench{
+    display:flex;
+    gap:36px;
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+
+  /* ---------- The physical unit ---------- */
+
+  .unit{
+    flex:1 1 480px;
+    max-width:640px;
+    background:
+      repeating-linear-gradient(95deg, rgba(0,0,0,.10) 0 2px, transparent 2px 7px),
+      linear-gradient(160deg, var(--wood-light), var(--wood) 45%, var(--wood-dark) 100%);
+    border-radius:10px;
+    padding:18px 18px 14px;
+    box-shadow:
+      0 30px 60px -25px rgba(0,0,0,.75),
+      0 2px 0 rgba(255,255,255,.06) inset,
+      0 -18px 30px -20px rgba(0,0,0,.5) inset;
+    position:relative;
+  }
+
+  .nameplate{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:12px;
+  }
+
+  .brass-plate{
+    font-family:"Oswald",sans-serif;
+    font-weight:600;
+    letter-spacing:.14em;
+    font-size:.95rem;
+    color:#2a220f;
+    background:linear-gradient(180deg,#e3c583,var(--brass) 55%,var(--brass-dim));
+    padding:6px 14px;
+    border-radius:3px;
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset, 0 2px 4px rgba(0,0,0,.4);
+  }
+  .brass-plate small{
+    display:block;
+    font-family:"IBM Plex Sans",sans-serif;
+    font-weight:500;
+    letter-spacing:.06em;
+    font-size:.56rem;
+    opacity:.75;
+    margin-top:1px;
+  }
+
+  .controls{
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+
+  .toggle, .btn-reset, .btn-demo{
+    font-family:"Oswald",sans-serif;
+    letter-spacing:.08em;
+    font-size:.68rem;
+    text-transform:uppercase;
+    color:var(--paper-2);
+    background:linear-gradient(180deg,#3a281a,#241608);
+    border:1px solid rgba(0,0,0,.5);
+    border-radius:4px;
+    padding:7px 11px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    box-shadow:0 1px 0 rgba(255,255,255,.08) inset, 0 2px 3px rgba(0,0,0,.4);
+  }
+  .toggle:hover, .btn-reset:hover, .btn-demo:hover{ filter:brightness(1.18); }
+  .toggle:active, .btn-reset:active, .btn-demo:active{ transform:translateY(1px); }
+  .toggle:focus-visible, .btn-reset:focus-visible, .btn-demo:focus-visible,
+  .screen:focus-visible{
+    outline:2px solid var(--phosphor);
+    outline-offset:2px;
+  }
+
+  .led{
+    width:8px; height:8px; border-radius:50%;
+    background:#3a1210;
+    box-shadow:0 0 2px rgba(0,0,0,.6) inset;
+    transition:background .15s, box-shadow .15s;
+  }
+  .unit.on .led{
+    background:#ff5b3d;
+    box-shadow:0 0 6px 2px rgba(255,91,61,.85);
+  }
+
+  .crt-frame{
+    background:#100a06;
+    border-radius:7px;
+    padding:16px;
+    box-shadow:0 10px 22px -14px rgba(0,0,0,.8) inset, 0 1px 0 rgba(255,255,255,.05);
+  }
+
+  .crt-glass{
+    position:relative;
+    background:radial-gradient(120% 130% at 50% 10%, #0d1c10, var(--crt-glass) 70%);
+    border-radius:4px;
+    padding:14px 16px;
+    overflow:hidden;
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,.6),
+      0 30px 40px -30px rgba(73,255,134,.15) inset;
+    filter:brightness(.35) saturate(.6);
+    transition:filter .5s ease;
+  }
+  .unit.on .crt-glass{ filter:brightness(1) saturate(1); }
+  .unit.flicker .crt-glass{ animation:flicker .5s steps(12) 1; }
+  @keyframes flicker{
+    0%{filter:brightness(0.2);} 15%{filter:brightness(1.3);} 30%{filter:brightness(.3);}
+    45%{filter:brightness(1.1);} 60%{filter:brightness(.5);} 100%{filter:brightness(1);}
+  }
+
+  .screen{
+    position:relative;
+    z-index:2;
+    margin:0;
+    min-height:19.5em;
+    font-family:"VT323",monospace;
+    font-size:1.35rem;
+    line-height:1.28;
+    letter-spacing:.02em;
+    color:var(--phosphor);
+    text-shadow:0 0 5px var(--phosphor), 0 0 1px var(--phosphor);
+    white-space:pre;
+    overflow:hidden;
+    outline:none;
+  }
+  .cursor{
+    background:var(--phosphor);
+    color:var(--crt-glass);
+    animation:blink 1s steps(1) infinite;
+  }
+  @media (prefers-reduced-motion:reduce){ .cursor{ animation:none; opacity:.85; } }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .scanlines{
+    position:absolute; inset:0; z-index:3; pointer-events:none;
+    background:repeating-linear-gradient(
+      to bottom, rgba(0,0,0,0) 0, rgba(0,0,0,0) 2px, rgba(0,0,0,.22) 3px
+    );
+    mix-blend-mode:multiply;
+  }
+  .glow{
+    position:absolute; inset:0; z-index:1; pointer-events:none;
+    box-shadow:0 0 60px 10px var(--phosphor-faint) inset;
+  }
+
+  .case-bottom{
+    margin-top:12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .vents{
+    display:flex; gap:3px;
+  }
+  .vents span{
+    width:3px; height:14px; border-radius:1px;
+    background:rgba(0,0,0,.45);
+    box-shadow:1px 0 0 rgba(255,255,255,.05);
+  }
+  .plate-label{
+    font-family:"Oswald",sans-serif;
+    font-size:.62rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:rgba(233,225,209,.55);
+  }
+
+  /* ---------- Info card ---------- */
+
+  .info-card{
+    flex:1 1 300px;
+    max-width:420px;
+    background:linear-gradient(180deg,var(--paper),var(--paper-2));
+    color:var(--ink);
+    border-radius:8px;
+    padding:24px 24px 22px;
+    box-shadow:0 24px 50px -30px rgba(0,0,0,.6);
+  }
+  .info-card h1{
+    font-family:"Oswald",sans-serif;
+    font-weight:600;
+    font-size:2rem;
+    letter-spacing:.01em;
+    text-wrap:balance;
+  }
+  .info-card .deck{
+    margin:8px 0 16px;
+    font-size:.92rem;
+    line-height:1.55;
+    color:var(--ink);
+    max-width:38ch;
+  }
+  .specs{
+    display:grid;
+    grid-template-columns:auto 1fr;
+    gap:4px 14px;
+    margin:0 0 18px;
+    padding:14px 0;
+    border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule);
+    font-size:.82rem;
+  }
+  .specs dt{
+    font-family:"Oswald",sans-serif;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    font-size:.68rem;
+    color:var(--muted);
+    align-self:baseline;
+    padding-top:2px;
+  }
+  .specs dd{ margin:0; font-variant-numeric:tabular-nums; }
+
+  .howto h2{
+    font-family:"Oswald",sans-serif;
+    font-size:.78rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:8px;
+  }
+  .howto ul{
+    margin:0 0 16px;
+    padding:0;
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+    font-size:.86rem;
+  }
+  .howto code{
+    font-family:"VT323",monospace;
+    font-size:1.05em;
+    background:rgba(42,32,22,.08);
+    padding:1px 6px;
+    border-radius:3px;
+    color:#3a2c1c;
+  }
+  .howto kbd{
+    font-family:"IBM Plex Sans",sans-serif;
+    font-size:.72rem;
+    border:1px solid var(--muted);
+    border-bottom-width:2px;
+    padding:1px 5px;
+    border-radius:3px;
+  }
+
+  .actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .actions button{
+    font-family:"Oswald",sans-serif;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    font-size:.72rem;
+    padding:9px 14px;
+    border-radius:4px;
+    border:1px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+    cursor:pointer;
+  }
+  .actions button.secondary{
+    background:transparent;
+    color:var(--ink);
+  }
+  .actions button:hover{ filter:brightness(1.15); }
+
+  .footnote{
+    margin-top:16px;
+    font-size:.74rem;
+    color:var(--muted);
+    line-height:1.5;
+  }
+
+  @media (max-width:640px){
+    .info-card{ max-width:100%; }
+    .screen{ font-size:1.12rem; min-height:17em; }
+  }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Cupertino, California — 1976</div>
+
+  <div class="bench">
+    <div class="unit on" id="unit">
+      <div class="nameplate">
+        <div class="brass-plate">APPLE&nbsp;I<small>Byte Shop · Palo Alto</small></div>
+        <div class="controls">
+          <button class="toggle" id="pwr" aria-pressed="true" title="Power">
+            <span class="led"></span>Power
+          </button>
+          <button class="btn-reset" id="reset" title="Reset">Reset</button>
+        </div>
+      </div>
+
+      <div class="crt-frame">
+        <div class="crt-glass">
+          <pre class="screen" id="screen" tabindex="0" aria-label="Apple I terminal — click to type"></pre>
+          <div class="scanlines" aria-hidden="true"></div>
+          <div class="glow" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <div class="case-bottom">
+        <div class="vents" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="plate-label">MOS 6502 · 1K MONITOR · 40×24 DISPLAY</div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h1>Apple&nbsp;I</h1>
+      <p class="deck">Steve Wozniak's first board, hand-built in the Jobs family garage and sold bare — no case, no keyboard, no power supply, no monitor. This page is a working recreation: a real emulated 6502 sits behind a hex monitor you can actually type into.</p>
+
+      <dl class="specs">
+        <dt>CPU</dt><dd>MOS 6502 @ 1&nbsp;MHz (emulated)</dd>
+        <dt>Memory</dt><dd>8&nbsp;KB RAM, $0000–$1FFF</dd>
+        <dt>I/O</dt><dd>6820 PIA at $D010–$D013</dd>
+        <dt>Firmware</dt><dd>256-byte monitor, reimplemented in JS</dd>
+        <dt>Launch price</dt><dd>$666.66, July 1976</dd>
+        <dt>Units built</dt><dd>≈200, by hand</dd>
+      </dl>
+
+      <div class="howto">
+        <h2>Using the monitor</h2>
+        <ul>
+          <li><code>0300</code> — examine one byte, <kbd>Return</kbd> again for the next</li>
+          <li><code>0300.030F</code> — examine a range</li>
+          <li><code>0300: A9 00 8D 12 D0</code> — deposit bytes from $0300</li>
+          <li><code>0300R</code> — run the program at $0300</li>
+        </ul>
+      </div>
+
+      <div class="actions">
+        <button id="demo">Load demo program</button>
+        <button class="secondary" id="clear">Clear screen</button>
+      </div>
+
+      <p class="footnote">Click the screen, then type — it's a real line-oriented terminal. Any bytes you deposit and run execute on a genuine (if simplified) 6502 instruction set, not a scripted animation.</p>
+    </div>
+  </div>
+</div>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Oswald:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+<script>
+(function(){
+  "use strict";
+
+  /* =========================================================
+     6502 CPU core
+  ========================================================= */
+  const F_N=0x80,F_V=0x40,F_U=0x20,F_B=0x10,F_D=0x08,F_I=0x04,F_Z=0x02,F_C=0x01;
+
+  function CPU(bus){
+    this.bus=bus;
+    this.reset();
+  }
+  CPU.prototype.reset=function(){
+    this.a=0; this.x=0; this.y=0; this.sp=0xFF; this.p=F_U|F_I;
+    this.pc=0x0300;
+    this.halted=false;
+  };
+  CPU.prototype.flag=function(m){ return (this.p&m)?1:0; };
+  CPU.prototype.setF=function(m,c){ if(c) this.p|=m; else this.p&=~m; };
+  CPU.prototype.nz=function(v){ v&=0xFF; this.setF(F_N,v&0x80); this.setF(F_Z,v===0); return v; };
+  CPU.prototype.rd=function(a){ return this.bus.read(a&0xFFFF); };
+  CPU.prototype.wr=function(a,v){ this.bus.write(a&0xFFFF,v&0xFF); };
+  CPU.prototype.fetch=function(){ const v=this.rd(this.pc); this.pc=(this.pc+1)&0xFFFF; return v; };
+  CPU.prototype.fetch16=function(){ const lo=this.fetch(),hi=this.fetch(); return lo|(hi<<8); };
+  CPU.prototype.push=function(v){ this.wr(0x0100+this.sp,v); this.sp=(this.sp-1)&0xFF; };
+  CPU.prototype.pop=function(){ this.sp=(this.sp+1)&0xFF; return this.rd(0x0100+this.sp); };
+
+  // addressing modes -> effective address
+  CPU.prototype.mImm =function(){ const a=this.pc; this.pc=(this.pc+1)&0xFFFF; return a; };
+  CPU.prototype.mZp  =function(){ return this.fetch(); };
+  CPU.prototype.mZpx =function(){ return (this.fetch()+this.x)&0xFF; };
+  CPU.prototype.mZpy =function(){ return (this.fetch()+this.y)&0xFF; };
+  CPU.prototype.mAbs =function(){ return this.fetch16(); };
+  CPU.prototype.mAbx =function(){ return (this.fetch16()+this.x)&0xFFFF; };
+  CPU.prototype.mAby =function(){ return (this.fetch16()+this.y)&0xFFFF; };
+  CPU.prototype.mInd =function(){
+    const p=this.fetch16();
+    const lo=this.rd(p), hi=this.rd((p&0xFF00)|((p+1)&0xFF)); // 6502 page-wrap quirk
+    return lo|(hi<<8);
+  };
+  CPU.prototype.mIzx =function(){
+    const p=(this.fetch()+this.x)&0xFF;
+    const lo=this.rd(p), hi=this.rd((p+1)&0xFF);
+    return lo|(hi<<8);
+  };
+  CPU.prototype.mIzy =function(){
+    const p=this.fetch();
+    const lo=this.rd(p), hi=this.rd((p+1)&0xFF);
+    return ((lo|(hi<<8))+this.y)&0xFFFF;
+  };
+  CPU.prototype.mRel =function(){
+    const o=this.fetch();
+    return o<0x80 ? o : o-0x100;
+  };
+
+  CPU.prototype.branch=function(cond){
+    const off=this.mRel();
+    if(cond) this.pc=(this.pc+off)&0xFFFF;
+  };
+  CPU.prototype.adc=function(addr){
+    const m=this.rd(addr), a=this.a, sum=a+m+this.flag(F_C);
+    this.setF(F_C, sum>0xFF);
+    this.setF(F_V, (~(a^m) & (a^sum) & 0x80)!==0);
+    this.a=this.nz(sum);
+  };
+  CPU.prototype.sbc=function(addr){
+    const m=this.rd(addr)^0xFF, a=this.a, sum=a+m+this.flag(F_C);
+    this.setF(F_C, sum>0xFF);
+    this.setF(F_V, (~(a^m) & (a^sum) & 0x80)!==0);
+    this.a=this.nz(sum);
+  };
+  CPU.prototype.cmp=function(reg,addr){
+    const m=this.rd(addr), r=(this[reg]-m)&0xFF;
+    this.setF(F_C, this[reg]>=m);
+    this.nz(r);
+  };
+
+  CPU.prototype.step=function(){
+    if(this.halted) return;
+    const op=this.fetch();
+    let a;
+    switch(op){
+      // LDA
+      case 0xA9: a=this.mImm(); this.a=this.nz(this.rd(a)); break;
+      case 0xA5: a=this.mZp();  this.a=this.nz(this.rd(a)); break;
+      case 0xB5: a=this.mZpx(); this.a=this.nz(this.rd(a)); break;
+      case 0xAD: a=this.mAbs(); this.a=this.nz(this.rd(a)); break;
+      case 0xBD: a=this.mAbx(); this.a=this.nz(this.rd(a)); break;
+      case 0xB9: a=this.mAby(); this.a=this.nz(this.rd(a)); break;
+      case 0xA1: a=this.mIzx(); this.a=this.nz(this.rd(a)); break;
+      case 0xB1: a=this.mIzy(); this.a=this.nz(this.rd(a)); break;
+      // LDX
+      case 0xA2: a=this.mImm(); this.x=this.nz(this.rd(a)); break;
+      case 0xA6: a=this.mZp();  this.x=this.nz(this.rd(a)); break;
+      case 0xB6: a=this.mZpy(); this.x=this.nz(this.rd(a)); break;
+      case 0xAE: a=this.mAbs(); this.x=this.nz(this.rd(a)); break;
+      case 0xBE: a=this.mAby(); this.x=this.nz(this.rd(a)); break;
+      // LDY
+      case 0xA0: a=this.mImm(); this.y=this.nz(this.rd(a)); break;
+      case 0xA4: a=this.mZp();  this.y=this.nz(this.rd(a)); break;
+      case 0xB4: a=this.mZpx(); this.y=this.nz(this.rd(a)); break;
+      case 0xAC: a=this.mAbs(); this.y=this.nz(this.rd(a)); break;
+      case 0xBC: a=this.mAbx(); this.y=this.nz(this.rd(a)); break;
+      // STA
+      case 0x85: a=this.mZp();  this.wr(a,this.a); break;
+      case 0x95: a=this.mZpx(); this.wr(a,this.a); break;
+      case 0x8D: a=this.mAbs(); this.wr(a,this.a); break;
+      case 0x9D: a=this.mAbx(); this.wr(a,this.a); break;
+      case 0x99: a=this.mAby(); this.wr(a,this.a); break;
+      case 0x81: a=this.mIzx(); this.wr(a,this.a); break;
+      case 0x91: a=this.mIzy(); this.wr(a,this.a); break;
+      // STX / STY
+      case 0x86: a=this.mZp();  this.wr(a,this.x); break;
+      case 0x96: a=this.mZpy(); this.wr(a,this.x); break;
+      case 0x8E: a=this.mAbs(); this.wr(a,this.x); break;
+      case 0x84: a=this.mZp();  this.wr(a,this.y); break;
+      case 0x94: a=this.mZpx(); this.wr(a,this.y); break;
+      case 0x8C: a=this.mAbs(); this.wr(a,this.y); break;
+      // transfers
+      case 0xAA: this.x=this.nz(this.a); break; // TAX
+      case 0x8A: this.a=this.nz(this.x); break; // TXA
+      case 0xA8: this.y=this.nz(this.a); break; // TAY
+      case 0x98: this.a=this.nz(this.y); break; // TYA
+      case 0xBA: this.x=this.nz(this.sp); break; // TSX
+      case 0x9A: this.sp=this.x; break; // TXS
+      // stack
+      case 0x48: this.push(this.a); break; // PHA
+      case 0x68: this.a=this.nz(this.pop()); break; // PLA
+      case 0x08: this.push(this.p|F_B|F_U); break; // PHP
+      case 0x28: this.p=(this.pop()&~F_B)|F_U; break; // PLP
+      // logic
+      case 0x29: a=this.mImm(); this.a=this.nz(this.a & this.rd(a)); break;
+      case 0x25: a=this.mZp();  this.a=this.nz(this.a & this.rd(a)); break;
+      case 0x35: a=this.mZpx(); this.a=this.nz(this.a & this.rd(a)); break;
+      case 0x2D: a=this.mAbs(); this.a=this.nz(this.a & this.rd(a)); break;
+      case 0x3D: a=this.mAbx(); this.a=this.nz(this.a & this.rd(a)); break;
+      case 0x39: a=this.mAby(); this.a=this.nz(this.a & this.rd(a)); break;
+      case 0x21: a=this.mIzx(); this.a=this.nz(this.a & this.rd(a)); break;
+      case 0x31: a=this.mIzy(); this.a=this.nz(this.a & this.rd(a)); break;
+      case 0x09: a=this.mImm(); this.a=this.nz(this.a | this.rd(a)); break;
+      case 0x05: a=this.mZp();  this.a=this.nz(this.a | this.rd(a)); break;
+      case 0x15: a=this.mZpx(); this.a=this.nz(this.a | this.rd(a)); break;
+      case 0x0D: a=this.mAbs(); this.a=this.nz(this.a | this.rd(a)); break;
+      case 0x1D: a=this.mAbx(); this.a=this.nz(this.a | this.rd(a)); break;
+      case 0x19: a=this.mAby(); this.a=this.nz(this.a | this.rd(a)); break;
+      case 0x01: a=this.mIzx(); this.a=this.nz(this.a | this.rd(a)); break;
+      case 0x11: a=this.mIzy(); this.a=this.nz(this.a | this.rd(a)); break;
+      case 0x49: a=this.mImm(); this.a=this.nz(this.a ^ this.rd(a)); break;
+      case 0x45: a=this.mZp();  this.a=this.nz(this.a ^ this.rd(a)); break;
+      case 0x55: a=this.mZpx(); this.a=this.nz(this.a ^ this.rd(a)); break;
+      case 0x4D: a=this.mAbs(); this.a=this.nz(this.a ^ this.rd(a)); break;
+      case 0x5D: a=this.mAbx(); this.a=this.nz(this.a ^ this.rd(a)); break;
+      case 0x59: a=this.mAby(); this.a=this.nz(this.a ^ this.rd(a)); break;
+      case 0x41: a=this.mIzx(); this.a=this.nz(this.a ^ this.rd(a)); break;
+      case 0x51: a=this.mIzy(); this.a=this.nz(this.a ^ this.rd(a)); break;
+      case 0x24: a=this.mZp();  { const m=this.rd(a); this.setF(F_Z,(this.a&m)===0); this.setF(F_N,m&0x80); this.setF(F_V,m&0x40); } break;
+      case 0x2C: a=this.mAbs(); { const m=this.rd(a); this.setF(F_Z,(this.a&m)===0); this.setF(F_N,m&0x80); this.setF(F_V,m&0x40); } break;
+      // arithmetic
+      case 0x69: a=this.mImm(); this.adc(a); break;
+      case 0x65: a=this.mZp();  this.adc(a); break;
+      case 0x75: a=this.mZpx(); this.adc(a); break;
+      case 0x6D: a=this.mAbs(); this.adc(a); break;
+      case 0x7D: a=this.mAbx(); this.adc(a); break;
+      case 0x79: a=this.mAby(); this.adc(a); break;
+      case 0x61: a=this.mIzx(); this.adc(a); break;
+      case 0x71: a=this.mIzy(); this.adc(a); break;
+      case 0xE9: a=this.mImm(); this.sbc(a); break;
+      case 0xE5: a=this.mZp();  this.sbc(a); break;
+      case 0xF5: a=this.mZpx(); this.sbc(a); break;
+      case 0xED: a=this.mAbs(); this.sbc(a); break;
+      case 0xFD: a=this.mAbx(); this.sbc(a); break;
+      case 0xF9: a=this.mAby(); this.sbc(a); break;
+      case 0xE1: a=this.mIzx(); this.sbc(a); break;
+      case 0xF1: a=this.mIzy(); this.sbc(a); break;
+      // compare
+      case 0xC9: a=this.mImm(); this.cmp('a',a); break;
+      case 0xC5: a=this.mZp();  this.cmp('a',a); break;
+      case 0xD5: a=this.mZpx(); this.cmp('a',a); break;
+      case 0xCD: a=this.mAbs(); this.cmp('a',a); break;
+      case 0xDD: a=this.mAbx(); this.cmp('a',a); break;
+      case 0xD9: a=this.mAby(); this.cmp('a',a); break;
+      case 0xC1: a=this.mIzx(); this.cmp('a',a); break;
+      case 0xD1: a=this.mIzy(); this.cmp('a',a); break;
+      case 0xE0: a=this.mImm(); this.cmp('x',a); break;
+      case 0xE4: a=this.mZp();  this.cmp('x',a); break;
+      case 0xEC: a=this.mAbs(); this.cmp('x',a); break;
+      case 0xC0: a=this.mImm(); this.cmp('y',a); break;
+      case 0xC4: a=this.mZp();  this.cmp('y',a); break;
+      case 0xCC: a=this.mAbs(); this.cmp('y',a); break;
+      // inc/dec
+      case 0xE6: a=this.mZp();  this.wr(a,this.nz(this.rd(a)+1)); break;
+      case 0xF6: a=this.mZpx(); this.wr(a,this.nz(this.rd(a)+1)); break;
+      case 0xEE: a=this.mAbs(); this.wr(a,this.nz(this.rd(a)+1)); break;
+      case 0xFE: a=this.mAbx(); this.wr(a,this.nz(this.rd(a)+1)); break;
+      case 0xC6: a=this.mZp();  this.wr(a,this.nz(this.rd(a)-1)); break;
+      case 0xD6: a=this.mZpx(); this.wr(a,this.nz(this.rd(a)-1)); break;
+      case 0xCE: a=this.mAbs(); this.wr(a,this.nz(this.rd(a)-1)); break;
+      case 0xDE: a=this.mAbx(); this.wr(a,this.nz(this.rd(a)-1)); break;
+      case 0xE8: this.x=this.nz(this.x+1); break;
+      case 0xC8: this.y=this.nz(this.y+1); break;
+      case 0xCA: this.x=this.nz(this.x-1); break;
+      case 0x88: this.y=this.nz(this.y-1); break;
+      // shifts
+      case 0x0A: { const c=this.a&0x80; this.a=this.nz(this.a<<1); this.setF(F_C,c); } break;
+      case 0x06: a=this.mZp();  { const v=this.rd(a),c=v&0x80; this.wr(a,this.nz(v<<1)); this.setF(F_C,c);} break;
+      case 0x16: a=this.mZpx(); { const v=this.rd(a),c=v&0x80; this.wr(a,this.nz(v<<1)); this.setF(F_C,c);} break;
+      case 0x0E: a=this.mAbs(); { const v=this.rd(a),c=v&0x80; this.wr(a,this.nz(v<<1)); this.setF(F_C,c);} break;
+      case 0x1E: a=this.mAbx(); { const v=this.rd(a),c=v&0x80; this.wr(a,this.nz(v<<1)); this.setF(F_C,c);} break;
+      case 0x4A: { const c=this.a&1; this.a=this.nz(this.a>>1); this.setF(F_C,c);} break;
+      case 0x46: a=this.mZp();  { const v=this.rd(a),c=v&1; this.wr(a,this.nz(v>>1)); this.setF(F_C,c);} break;
+      case 0x56: a=this.mZpx(); { const v=this.rd(a),c=v&1; this.wr(a,this.nz(v>>1)); this.setF(F_C,c);} break;
+      case 0x4E: a=this.mAbs(); { const v=this.rd(a),c=v&1; this.wr(a,this.nz(v>>1)); this.setF(F_C,c);} break;
+      case 0x5E: a=this.mAbx(); { const v=this.rd(a),c=v&1; this.wr(a,this.nz(v>>1)); this.setF(F_C,c);} break;
+      case 0x2A: { const c=this.a&0x80; this.a=this.nz((this.a<<1)|this.flag(F_C)); this.setF(F_C,c);} break;
+      case 0x26: a=this.mZp();  { const v=this.rd(a),c=v&0x80; this.wr(a,this.nz((v<<1)|this.flag(F_C))); this.setF(F_C,c);} break;
+      case 0x36: a=this.mZpx(); { const v=this.rd(a),c=v&0x80; this.wr(a,this.nz((v<<1)|this.flag(F_C))); this.setF(F_C,c);} break;
+      case 0x2E: a=this.mAbs(); { const v=this.rd(a),c=v&0x80; this.wr(a,this.nz((v<<1)|this.flag(F_C))); this.setF(F_C,c);} break;
+      case 0x3E: a=this.mAbx(); { const v=this.rd(a),c=v&0x80; this.wr(a,this.nz((v<<1)|this.flag(F_C))); this.setF(F_C,c);} break;
+      case 0x6A: { const c=this.a&1; this.a=this.nz((this.a>>1)|(this.flag(F_C)?0x80:0)); this.setF(F_C,c);} break;
+      case 0x66: a=this.mZp();  { const v=this.rd(a),c=v&1; this.wr(a,this.nz((v>>1)|(this.flag(F_C)?0x80:0))); this.setF(F_C,c);} break;
+      case 0x76: a=this.mZpx(); { const v=this.rd(a),c=v&1; this.wr(a,this.nz((v>>1)|(this.flag(F_C)?0x80:0))); this.setF(F_C,c);} break;
+      case 0x6E: a=this.mAbs(); { const v=this.rd(a),c=v&1; this.wr(a,this.nz((v>>1)|(this.flag(F_C)?0x80:0))); this.setF(F_C,c);} break;
+      case 0x7E: a=this.mAbx(); { const v=this.rd(a),c=v&1; this.wr(a,this.nz((v>>1)|(this.flag(F_C)?0x80:0))); this.setF(F_C,c);} break;
+      // jumps
+      case 0x4C: this.pc=this.mAbs(); break;
+      case 0x6C: this.pc=this.mInd(); break;
+      case 0x20: { a=this.mAbs(); const ret=(this.pc-1)&0xFFFF; this.push(ret>>8); this.push(ret&0xFF); this.pc=a; } break;
+      case 0x60: { const lo=this.pop(),hi=this.pop(); this.pc=((lo|(hi<<8))+1)&0xFFFF; } break;
+      case 0x40: { this.p=(this.pop()&~F_B)|F_U; const lo=this.pop(),hi=this.pop(); this.pc=lo|(hi<<8); } break;
+      case 0x00: this.halted=true; break; // BRK — hand control back to the monitor
+      // branches
+      case 0x90: this.branch(!this.flag(F_C)); break;
+      case 0xB0: this.branch(!!this.flag(F_C)); break;
+      case 0xF0: this.branch(!!this.flag(F_Z)); break;
+      case 0xD0: this.branch(!this.flag(F_Z)); break;
+      case 0x30: this.branch(!!this.flag(F_N)); break;
+      case 0x10: this.branch(!this.flag(F_N)); break;
+      case 0x50: this.branch(!this.flag(F_V)); break;
+      case 0x70: this.branch(!!this.flag(F_V)); break;
+      // flags
+      case 0x18: this.setF(F_C,0); break;
+      case 0x38: this.setF(F_C,1); break;
+      case 0x58: this.setF(F_I,0); break;
+      case 0x78: this.setF(F_I,1); break;
+      case 0xB8: this.setF(F_V,0); break;
+      case 0xD8: this.setF(F_D,0); break;
+      case 0xF8: this.setF(F_D,1); break;
+      case 0xEA: break; // NOP
+      default: this.halted=true; break; // unknown opcode — stop cleanly
+    }
+  };
+
+  /* =========================================================
+     Bus: 8K RAM + 6820 PIA at $D010-$D013
+  ========================================================= */
+  function Bus(onKeyRead, onDisplayWrite){
+    this.mem=new Uint8Array(0x2000); // $0000-$1FFF RAM
+    this.kbd=0; this.kbdReady=false;
+    this.onDisplayWrite=onDisplayWrite;
+  }
+  Bus.prototype.read=function(addr){
+    if(addr===0xD010){ const v=this.kbd; return v; }
+    if(addr===0xD011){ return this.kbdReady ? 0x80 : 0x00; }
+    if(addr===0xD012){ return 0x00; }
+    if(addr===0xD013){ return 0x00; }
+    if(addr<0x2000) return this.mem[addr];
+    return 0xFF;
+  };
+  Bus.prototype.write=function(addr,val){
+    if(addr===0xD012){ this.onDisplayWrite(val&0x7F); return; }
+    if(addr===0xD010 || addr===0xD011 || addr===0xD013){ return; } // read-only from CPU side
+    if(addr<0x2000) this.mem[addr]=val&0xFF;
+  };
+  Bus.prototype.poke=function(addr,val){ if(addr<0x2000) this.mem[addr]=val&0xFF; };
+
+  /* =========================================================
+     Terminal (40x24, uppercase, green phosphor)
+  ========================================================= */
+  const COLS=40, ROWS=24;
+  const screenEl=document.getElementById('screen');
+  let lines=[""];
+  let cursorOn=true;
+
+  function render(){
+    const trimmed=lines.slice(-ROWS);
+    let html=trimmed.map(escapeHtml).join("\n");
+    html += (cursorOn?'<span class="cursor"> </span>':' ');
+    screenEl.innerHTML=html;
+  }
+  function escapeHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function newline(){
+    lines.push("");
+    if(lines.length>500) lines=lines.slice(-300);
+  }
+  function putChar(code){
+    if(code===0x0D || code===0x0A){ newline(); return; }
+    if(code===0x5F || code===0x08){ // underscore / backspace, Apple-1 style delete
+      const cur=lines[lines.length-1];
+      lines[lines.length-1]=cur.slice(0,-1);
+      return;
+    }
+    if(code<0x20 || code>0x7E) return;
+    let ch=String.fromCharCode(code).toUpperCase();
+    let cur=lines[lines.length-1];
+    if(cur.length>=COLS) newline(), cur=lines[lines.length-1];
+    lines[lines.length-1]=cur+ch;
+  }
+  function printStr(s){ for(const ch of s) putChar(ch.charCodeAt(0)); }
+  function clearScreen(){ lines=[""]; render(); }
+
+  /* =========================================================
+     Machine: CPU + Bus + Monitor state machine
+  ========================================================= */
+  const bus=new Bus(null, (code)=>{ putChar(code); render(); });
+  const cpu=new CPU(bus);
+
+  let mode='monitor'; // 'monitor' | 'running'
+  let inputBuf='';
+  let lastExamine=null;
+  let runTimer=null;
+  let poweredOn=true;
+
+  function prompt(){ newline(); lines[lines.length-1]='\\'; render(); }
+
+  function hex2(n){ return n.toString(16).toUpperCase().padStart(2,'0'); }
+  function hex4(n){ return n.toString(16).toUpperCase().padStart(4,'0'); }
+
+  function doExamine(addr){
+    const v=bus.read(addr);
+    newline();
+    lines[lines.length-1]=hex4(addr)+': '+hex2(v);
+    lastExamine=addr;
+    render();
+  }
+  function doExamineRange(start,end){
+    let addr=start;
+    while(addr<=end){
+      newline();
+      let row=hex4(addr)+':';
+      for(let i=0;i<8 && addr<=end;i++,addr++){ row+=' '+hex2(bus.read(addr)); }
+      lines[lines.length-1]=row;
+    }
+    lastExamine=addr-1;
+    render();
+  }
+  function doDeposit(addr,bytesStr){
+    const toks=bytesStr.trim().split(/\s+/).filter(Boolean);
+    let a=addr;
+    for(const t of toks){
+      const v=parseInt(t,16);
+      if(isNaN(v)) continue;
+      bus.poke(a, v);
+      a++;
+    }
+    newline();
+    lines[lines.length-1]=hex4(addr)+': '+toks.join(' ');
+    lastExamine=a-1;
+    render();
+  }
+  function doRun(addr){
+    cpu.pc=addr;
+    cpu.halted=false;
+    mode='running';
+    let budget=0;
+    clearInterval(runTimer);
+    runTimer=setInterval(()=>{
+      let steps=0;
+      while(steps<4000 && !cpu.halted){ cpu.step(); steps++; budget++; }
+      if(cpu.halted || budget>2000000){
+        clearInterval(runTimer);
+        mode='monitor';
+        if(budget>2000000){ newline(); lines[lines.length-1]='...HALTED (instruction limit)'; }
+        prompt();
+      }
+    }, 8);
+  }
+
+  function processLine(str){
+    const s=str.trim().toUpperCase();
+    if(s===''){
+      if(lastExamine!==null){ doExamine((lastExamine+1)&0xFFFF); }
+      prompt();
+      return;
+    }
+    let m;
+    if((m=s.match(/^([0-9A-F]{1,4})R$/))){
+      doRun(parseInt(m[1],16));
+      return; // prompt printed when run halts
+    }
+    if((m=s.match(/^([0-9A-F]{1,4}):\s*(.+)$/))){
+      doDeposit(parseInt(m[1],16), m[2]);
+      prompt();
+      return;
+    }
+    if((m=s.match(/^([0-9A-F]{1,4})\.([0-9A-F]{1,4})$/))){
+      const start=parseInt(m[1],16), end=parseInt(m[2],16);
+      doExamineRange(Math.min(start,end), Math.max(start,end));
+      prompt();
+      return;
+    }
+    if((m=s.match(/^([0-9A-F]{1,4})$/))){
+      doExamine(parseInt(m[1],16));
+      prompt();
+      return;
+    }
+    newline();
+    lines[lines.length-1]='?';
+    prompt();
+  }
+
+  /* =========================================================
+     Keyboard handling
+  ========================================================= */
+  function echo(ch){
+    const cur=lines[lines.length-1];
+    lines[lines.length-1]=cur+ch;
+    render();
+  }
+  function backspaceLine(){
+    const cur=lines[lines.length-1];
+    if(cur.length>1){ lines[lines.length-1]=cur.slice(0,-1); render(); }
+  }
+
+  screenEl.addEventListener('keydown', (e)=>{
+    if(!poweredOn) return;
+
+    if(mode==='running'){
+      // route keystrokes into the PIA so a running program can read them
+      if(e.key.length===1){
+        bus.kbd=(e.key.toUpperCase().charCodeAt(0))|0x80;
+        bus.kbdReady=true;
+      }
+      e.preventDefault();
+      return;
+    }
+
+    if(e.key==='Enter'){
+      e.preventDefault();
+      const line=lines[lines.length-1];
+      const content=line.startsWith('\\') ? line.slice(1) : line;
+      processLine(content);
+      inputBuf='';
+      return;
+    }
+    if(e.key==='Backspace'){
+      e.preventDefault();
+      backspaceLine();
+      return;
+    }
+    if(e.key.length===1 && /[0-9a-fA-F: .rR]/.test(e.key)){
+      e.preventDefault();
+      echo(e.key.toUpperCase());
+      return;
+    }
+  });
+
+  /* =========================================================
+     Controls: power / reset / demo / clear
+  ========================================================= */
+  const unitEl=document.getElementById('unit');
+  const pwrBtn=document.getElementById('pwr');
+  const resetBtn=document.getElementById('reset');
+  const demoBtn=document.getElementById('demo');
+  const clearBtn=document.getElementById('clear');
+
+  function bootMonitor(){
+    clearInterval(runTimer);
+    mode='monitor';
+    cpu.reset();
+    lastExamine=null;
+    clearScreen();
+    prompt();
+    screenEl.focus();
+  }
+
+  pwrBtn.addEventListener('click', ()=>{
+    poweredOn=!poweredOn;
+    pwrBtn.setAttribute('aria-pressed', String(poweredOn));
+    unitEl.classList.toggle('on', poweredOn);
+    if(poweredOn){
+      unitEl.classList.add('flicker');
+      setTimeout(()=>unitEl.classList.remove('flicker'), 550);
+      bootMonitor();
+    } else {
+      clearInterval(runTimer);
+    }
+  });
+
+  resetBtn.addEventListener('click', ()=>{
+    if(!poweredOn) return;
+    bootMonitor();
+  });
+
+  clearBtn.addEventListener('click', ()=>{
+    if(!poweredOn) return;
+    clearScreen();
+    prompt();
+    screenEl.focus();
+  });
+
+  demoBtn.addEventListener('click', ()=>{
+    if(!poweredOn) return;
+    if(mode==='running') clearInterval(runTimer);
+    mode='monitor';
+    // LDX #0 / LOOP: LDA MSG,X / BEQ DONE / STA $D012 / INX / JMP LOOP / DONE: BRK
+    const prog=[0xA2,0x00, 0xBD,0x10,0x03, 0xF0,0x07, 0x8D,0x12,0xD0, 0xE8, 0x4C,0x02,0x03, 0x00];
+    prog.forEach((b,i)=>bus.poke(0x0300+i,b));
+    const msg="HELLO FROM APPLE I\r\0";
+    for(let i=0;i<msg.length;i++) bus.poke(0x0310+i, msg.charCodeAt(i));
+    newline();
+    lines[lines.length-1]='0300R';
+    render();
+    doRun(0x0300);
+    screenEl.focus();
+  });
+
+  screenEl.addEventListener('click', ()=>{ if(poweredOn) screenEl.focus(); });
+
+  /* cursor blink driver (keeps working even with reduced-motion CSS override) */
+  setInterval(()=>{ cursorOn=!cursorOn; if(poweredOn) render(); }, 530);
+
+  /* =========================================================
+     Boot at page load
+  ========================================================= */
+  bootMonitor();
+
+})();
+</script>
