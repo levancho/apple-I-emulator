@@ -86,6 +86,22 @@ Two things to know if you change this:
 - The assets directory is the repo root, so `.assetsignore` is what keeps `.git` from
   being published. Without it, the whole repository is served publicly.
 
+## Sample programs
+
+The sidebar lists five programs you can click to assemble into memory and run on the
+emulated 6502 — no typing required:
+
+| Program | What it does |
+|---|---|
+| Hello, world | Walks a null-terminated string at `$0380`, storing each byte to `$D012` |
+| A–Z sweep | Counts `X` from `$41` to `$5A`, printing each as a character |
+| Hex counter 00–FF | Every byte value in hex, 8 per row, via a nibble-to-ASCII subroutine |
+| Fibonacci (hex) | 8-bit Fibonacci in zero page, halting on the first carry-out |
+| Star triangle | Nested `X`/`Y` loops drawing a 12-row triangle |
+
+Each one deposits at `$0300` and runs exactly as if you had typed the bytes in by hand,
+so you can examine them afterwards with `0300.0340` to see the machine code.
+
 ## Known limitations
 
 - Official 6502 opcodes only — no illegal/undocumented instructions.

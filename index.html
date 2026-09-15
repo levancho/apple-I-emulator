@@ -311,6 +311,46 @@
     border-radius:3px;
   }
 
+
+  .programs h2{
+    font-family:"Oswald",sans-serif;
+    font-size:.78rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  .programs-hint{ font-size:.8rem; color:var(--muted); margin:0 0 10px; }
+  .prog-list{ list-style:none; margin:0 0 16px; padding:0; display:flex; flex-direction:column; gap:6px; }
+  .prog-list button.prog{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    text-align:left;
+    cursor:pointer;
+    font:inherit;
+    padding:8px 10px;
+    border-radius:4px;
+    border:1px solid rgba(42,32,22,.22);
+    background:rgba(42,32,22,.04);
+    color:var(--ink);
+    transition:background .12s ease, border-color .12s ease, transform .08s ease;
+  }
+  .prog-list button.prog:hover{ background:rgba(42,32,22,.09); border-color:rgba(42,32,22,.42); }
+  .prog-list button.prog:active{ transform:translateY(1px); }
+  .prog-list button.prog:focus-visible{ outline:2px solid var(--ink); outline-offset:2px; }
+  .prog-name{
+    font-family:"Oswald",sans-serif;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    font-size:.76rem;
+  }
+  .prog-blurb{ font-size:.78rem; color:var(--muted); line-height:1.35; }
+  .prog-meta{ font-family:"VT323",monospace; font-size:.9rem; color:var(--muted); opacity:.8; }
+  @media (prefers-reduced-motion: reduce){
+    .prog-list button.prog{ transition:none; }
+  }
   .actions{ display:flex; gap:8px; flex-wrap:wrap; }
   .actions button{
     font-family:"Oswald",sans-serif;
@@ -383,7 +423,6 @@
         <dt>Memory</dt><dd>8&nbsp;KB RAM, $0000–$1FFF</dd>
         <dt>I/O</dt><dd>6820 PIA at $D010–$D013</dd>
         <dt>Firmware</dt><dd>256-byte monitor, reimplemented in JS</dd>
-        <dt>Launch price</dt><dd>$666.66, July 1976</dd>
         <dt>Units built</dt><dd>≈200, by hand</dd>
       </dl>
 
@@ -397,8 +436,19 @@
         </ul>
       </div>
 
+      <div class="programs">
+        <h2>Sample programs</h2>
+        <p class="programs-hint">Click one to deposit it into memory and run it on the 6502.</p>
+        <ul class="prog-list">
+          <li><button class="prog" data-prog="hello"><span class="prog-name">Hello, world</span><span class="prog-blurb">Walks a null-terminated string and pokes each byte at the display register.</span><span class="prog-meta">15 bytes @ $0300</span></button></li>
+          <li><button class="prog" data-prog="alpha"><span class="prog-name">A-Z sweep</span><span class="prog-blurb">Counts X from $41 to $5A, printing each as a character.</span><span class="prog-meta">17 bytes @ $0300</span></button></li>
+          <li><button class="prog" data-prog="hexdump"><span class="prog-name">Hex counter 00-FF</span><span class="prog-blurb">Prints every byte value in hex, 8 per row, using a nibble-to-ASCII subroutine.</span><span class="prog-meta">58 bytes @ $0300</span></button></li>
+          <li><button class="prog" data-prog="fib"><span class="prog-name">Fibonacci (hex)</span><span class="prog-blurb">8-bit Fibonacci in zero page, stopping on the first carry-out overflow.</span><span class="prog-meta">73 bytes @ $0300</span></button></li>
+          <li><button class="prog" data-prog="tri"><span class="prog-name">Star triangle</span><span class="prog-blurb">Nested X/Y loops drawing a 12-row triangle, one STA $D012 per star.</span><span class="prog-meta">27 bytes @ $0300</span></button></li>
+        </ul>
+      </div>
+
       <div class="actions">
-        <button id="demo">Load demo program</button>
         <button class="secondary" id="clear">Clear screen</button>
       </div>
 
@@ -875,7 +925,6 @@
   const unitEl=document.getElementById('unit');
   const pwrBtn=document.getElementById('pwr');
   const resetBtn=document.getElementById('reset');
-  const demoBtn=document.getElementById('demo');
   const clearBtn=document.getElementById('clear');
 
   function bootMonitor(){
@@ -913,20 +962,35 @@
     screenEl.focus();
   });
 
-  demoBtn.addEventListener('click', ()=>{
+  const PROGRAMS=[
+    {id:"hello", addr:0x0300, code:[0xA2,0x00,0xBD,0x80,0x03,0xF0,0x07,0x8D,0x12,0xD0,0xE8,0x4C,0x02,0x03,0x00], data:{896:"HELLO FROM APPLE I\r\u0000"}},
+    {id:"alpha", addr:0x0300, code:[0xA2,0x41,0x8A,0x8D,0x12,0xD0,0xE8,0xE0,0x5B,0xD0,0xF7,0xA9,0x0D,0x8D,0x12,0xD0,0x00], data:{}},
+    {id:"hexdump", addr:0x0300, code:[0xA2,0x00,0x8A,0x20,0x1B,0x03,0xA9,0x20,0x8D,0x12,0xD0,0xE8,0x8A,0x29,0x07,0xD0,0x05,0xA9,0x0D,0x8D,0x12,0xD0,0xE0,0x00,0xD0,0xE8,0x00,0x48,0x4A,0x4A,0x4A,0x4A,0x20,0x2A,0x03,0x68,0x29,0x0F,0x20,0x2A,0x03,0x60,0xC9,0x0A,0x90,0x06,0x69,0x36,0x8D,0x12,0xD0,0x60,0x69,0x30,0x8D,0x12,0xD0,0x60], data:{}},
+    {id:"fib", addr:0x0300, code:[0xA9,0x00,0x85,0x00,0xA9,0x01,0x85,0x01,0xA5,0x00,0x20,0x2A,0x03,0xA9,0x20,0x8D,0x12,0xD0,0xA5,0x00,0x18,0x65,0x01,0xB0,0x0B,0x48,0xA5,0x01,0x85,0x00,0x68,0x85,0x01,0x4C,0x08,0x03,0xA9,0x0D,0x8D,0x12,0xD0,0x00,0x48,0x4A,0x4A,0x4A,0x4A,0x20,0x39,0x03,0x68,0x29,0x0F,0x20,0x39,0x03,0x60,0xC9,0x0A,0x90,0x06,0x69,0x36,0x8D,0x12,0xD0,0x60,0x69,0x30,0x8D,0x12,0xD0,0x60], data:{}},
+    {id:"tri", addr:0x0300, code:[0xA0,0x01,0xA2,0x00,0xA9,0x2A,0x8D,0x12,0xD0,0xE8,0x86,0x10,0xC4,0x10,0xD0,0xF4,0xA9,0x0D,0x8D,0x12,0xD0,0xC8,0xC0,0x0D,0xD0,0xE8,0x00], data:{}}
+  ];
+
+  function runProgram(def){
     if(!poweredOn) return;
     if(mode==='running') clearInterval(runTimer);
     mode='monitor';
-    // LDX #0 / LOOP: LDA MSG,X / BEQ DONE / STA $D012 / INX / JMP LOOP / DONE: BRK
-    const prog=[0xA2,0x00, 0xBD,0x10,0x03, 0xF0,0x07, 0x8D,0x12,0xD0, 0xE8, 0x4C,0x02,0x03, 0x00];
-    prog.forEach((b,i)=>bus.poke(0x0300+i,b));
-    const msg="HELLO FROM APPLE I\r\0";
-    for(let i=0;i<msg.length;i++) bus.poke(0x0310+i, msg.charCodeAt(i));
+    def.code.forEach((b,i)=>bus.poke(def.addr+i,b));
+    for(const addr in def.data){
+      const str=def.data[addr];
+      for(let i=0;i<str.length;i++) bus.poke(Number(addr)+i, str.charCodeAt(i));
+    }
     newline();
-    lines[lines.length-1]='0300R';
+    lines[lines.length-1]=def.addr.toString(16).toUpperCase().padStart(4,'0')+'R';
     render();
-    doRun(0x0300);
+    doRun(def.addr);
     screenEl.focus();
+  }
+
+  document.querySelectorAll('button.prog').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const def=PROGRAMS.find(p=>p.id===btn.dataset.prog);
+      if(def) runProgram(def);
+    });
   });
 
   screenEl.addEventListener('click', ()=>{ if(poweredOn) screenEl.focus(); });
