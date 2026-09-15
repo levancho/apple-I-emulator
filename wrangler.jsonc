@@ -1,0 +1,8 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "l3v-apple1-site",
+  "compatibility_date": "2026-09-15",
+  "observability": { "enabled": true },
+  "assets": { "directory": "." },
+  "routes": [{ "pattern": "apple1.l3v.ai", "custom_domain": true }]
+}
