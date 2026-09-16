@@ -793,12 +793,11 @@
   const cpu=new CPU(bus);
 
   let mode='monitor'; // 'monitor' | 'running'
-  let inputBuf='';
   let lastExamine=null;
   let runTimer=null;
   let poweredOn=true;
 
-  function prompt(){ newline(); lines[lines.length-1]='\\'; render(); }
+  function prompt(){ inputBuf=''; newline(); lines[lines.length-1]='\\'; render(); }
 
   function hex2(n){ return n.toString(16).toUpperCase().padStart(2,'0'); }
   function hex4(n){ return n.toString(16).toUpperCase().padStart(4,'0'); }
@@ -889,14 +888,24 @@
   /* =========================================================
      Keyboard handling
   ========================================================= */
+  let inputBuf='';
   function echo(ch){
-    const cur=lines[lines.length-1];
+    inputBuf+=ch;
+    let cur=lines[lines.length-1];
+    if(cur.length>=COLS){ newline(); cur=lines[lines.length-1]; } // 40-col wrap, same as putChar
     lines[lines.length-1]=cur+ch;
     render();
   }
   function backspaceLine(){
-    const cur=lines[lines.length-1];
-    if(cur.length>1){ lines[lines.length-1]=cur.slice(0,-1); render(); }
+    if(inputBuf.length===0) return;              // nothing typed yet; never eat the prompt
+    inputBuf=inputBuf.slice(0,-1);
+    let cur=lines[lines.length-1];
+    if(cur.length===0 && lines.length>1){        // on a wrapped continuation line
+      lines.pop();
+      cur=lines[lines.length-1];
+    }
+    lines[lines.length-1]=cur.slice(0,-1);
+    render();
   }
 
   screenEl.addEventListener('keydown', (e)=>{
@@ -914,10 +923,9 @@
 
     if(e.key==='Enter'){
       e.preventDefault();
-      const line=lines[lines.length-1];
-      const content=line.startsWith('\\') ? line.slice(1) : line;
-      processLine(content);
+      const content=inputBuf;
       inputBuf='';
+      processLine(content);
       return;
     }
     if(e.key==='Backspace'){
