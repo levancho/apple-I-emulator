@@ -61,9 +61,15 @@
 
   /* ---------- The physical unit ---------- */
 
-  .unit{
+  .rig{
     flex:1 1 480px;
     max-width:640px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .unit{
+    width:100%;
     background:
       repeating-linear-gradient(95deg, rgba(0,0,0,.10) 0 2px, transparent 2px 7px),
       linear-gradient(160deg, var(--wood-light), var(--wood) 45%, var(--wood-dark) 100%);
@@ -312,45 +318,50 @@
   }
 
 
+  .programs{
+    background:rgba(0,0,0,.22);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:8px;
+    padding:12px 14px 14px;
+  }
   .programs h2{
     font-family:"Oswald",sans-serif;
-    font-size:.78rem;
-    letter-spacing:.1em;
+    font-size:.72rem;
+    letter-spacing:.12em;
     text-transform:uppercase;
-    color:var(--muted);
-    margin-bottom:6px;
+    color:#c9b48d;
+    margin:0 0 4px;
   }
-  .programs-hint{ font-size:.8rem; color:var(--muted); margin:0 0 10px; }
-  .prog-list{ list-style:none; margin:0 0 16px; padding:0; display:flex; flex-direction:column; gap:6px; }
+  .programs-hint{ font-size:.76rem; color:#8d7d66; margin:0 0 10px; }
+  .prog-list{
+    list-style:none; margin:0; padding:0;
+    display:flex; flex-direction:row; flex-wrap:wrap; gap:8px;
+  }
   .prog-list button.prog{
-    width:100%;
-    display:flex;
-    flex-direction:column;
-    gap:2px;
-    text-align:left;
+    display:inline-flex;
+    align-items:baseline;
+    gap:8px;
     cursor:pointer;
     font:inherit;
-    padding:8px 10px;
-    border-radius:4px;
-    border:1px solid rgba(42,32,22,.22);
-    background:rgba(42,32,22,.04);
-    color:var(--ink);
+    padding:7px 11px;
+    border-radius:5px;
+    border:1px solid rgba(255,255,255,.14);
+    background:rgba(255,255,255,.05);
+    color:#e8dcc4;
     transition:background .12s ease, border-color .12s ease, transform .08s ease;
   }
-  .prog-list button.prog:hover{ background:rgba(42,32,22,.09); border-color:rgba(42,32,22,.42); }
+  .prog-list button.prog:hover{ background:rgba(255,255,255,.12); border-color:rgba(255,255,255,.3); }
   .prog-list button.prog:active{ transform:translateY(1px); }
-  .prog-list button.prog:focus-visible{ outline:2px solid var(--ink); outline-offset:2px; }
+  .prog-list button.prog:focus-visible{ outline:2px solid #7fe08a; outline-offset:2px; }
   .prog-name{
     font-family:"Oswald",sans-serif;
     text-transform:uppercase;
     letter-spacing:.05em;
-    font-size:.76rem;
+    font-size:.74rem;
+    white-space:nowrap;
   }
-  .prog-blurb{ font-size:.78rem; color:var(--muted); line-height:1.35; }
-  .prog-meta{ font-family:"VT323",monospace; font-size:.9rem; color:var(--muted); opacity:.8; }
-  @media (prefers-reduced-motion: reduce){
-    .prog-list button.prog{ transition:none; }
-  }
+  .prog-meta{ font-family:"VT323",monospace; font-size:.85rem; color:#9aca9a; opacity:.85; white-space:nowrap; }
+  @media (prefers-reduced-motion: reduce){ .prog-list button.prog{ transition:none; } }
   .actions{ display:flex; gap:8px; flex-wrap:wrap; }
   .actions button{
     font-family:"Oswald",sans-serif;
@@ -387,6 +398,7 @@
   <div class="eyebrow">Cupertino, California — 1976</div>
 
   <div class="bench">
+    <div class="rig">
     <div class="unit on" id="unit">
       <div class="nameplate">
         <div class="brass-plate">APPLE&nbsp;I<small>Byte Shop · Palo Alto</small></div>
@@ -414,6 +426,19 @@
       </div>
     </div>
 
+    <div class="programs">
+      <h2>Sample programs</h2>
+      <p class="programs-hint">Click one to deposit it into memory and run it on the 6502. Hover for details.</p>
+      <ul class="prog-list">
+          <li><button class="prog" data-prog="hello" title="Walks a null-terminated string and pokes each byte at the display register."><span class="prog-name">Hello, world</span><span class="prog-meta">15 bytes</span></button></li>
+          <li><button class="prog" data-prog="alpha" title="Counts X from $41 to $5A, printing each as a character."><span class="prog-name">A-Z sweep</span><span class="prog-meta">17 bytes</span></button></li>
+          <li><button class="prog" data-prog="hexdump" title="Prints every byte value in hex, 8 per row, using a nibble-to-ASCII subroutine."><span class="prog-name">Hex counter 00-FF</span><span class="prog-meta">58 bytes</span></button></li>
+          <li><button class="prog" data-prog="fib" title="8-bit Fibonacci in zero page, stopping on the first carry-out overflow."><span class="prog-name">Fibonacci (hex)</span><span class="prog-meta">73 bytes</span></button></li>
+          <li><button class="prog" data-prog="tri" title="Nested X/Y loops drawing a 12-row triangle, one STA $D012 per star."><span class="prog-name">Star triangle</span><span class="prog-meta">27 bytes</span></button></li>
+      </ul>
+    </div>
+    </div>
+
     <div class="info-card">
       <h1>Apple&nbsp;I</h1>
       <p class="deck">Steve Wozniak's first board, hand-built in the Jobs family garage and sold bare — no case, no keyboard, no power supply, no monitor. This page is a working recreation: a real emulated 6502 sits behind a hex monitor you can actually type into.</p>
@@ -433,18 +458,6 @@
           <li><code>0300.030F</code> — examine a range</li>
           <li><code>0300: A9 00 8D 12 D0</code> — deposit bytes from $0300</li>
           <li><code>0300R</code> — run the program at $0300</li>
-        </ul>
-      </div>
-
-      <div class="programs">
-        <h2>Sample programs</h2>
-        <p class="programs-hint">Click one to deposit it into memory and run it on the 6502.</p>
-        <ul class="prog-list">
-          <li><button class="prog" data-prog="hello"><span class="prog-name">Hello, world</span><span class="prog-blurb">Walks a null-terminated string and pokes each byte at the display register.</span><span class="prog-meta">15 bytes @ $0300</span></button></li>
-          <li><button class="prog" data-prog="alpha"><span class="prog-name">A-Z sweep</span><span class="prog-blurb">Counts X from $41 to $5A, printing each as a character.</span><span class="prog-meta">17 bytes @ $0300</span></button></li>
-          <li><button class="prog" data-prog="hexdump"><span class="prog-name">Hex counter 00-FF</span><span class="prog-blurb">Prints every byte value in hex, 8 per row, using a nibble-to-ASCII subroutine.</span><span class="prog-meta">58 bytes @ $0300</span></button></li>
-          <li><button class="prog" data-prog="fib"><span class="prog-name">Fibonacci (hex)</span><span class="prog-blurb">8-bit Fibonacci in zero page, stopping on the first carry-out overflow.</span><span class="prog-meta">73 bytes @ $0300</span></button></li>
-          <li><button class="prog" data-prog="tri"><span class="prog-name">Star triangle</span><span class="prog-blurb">Nested X/Y loops drawing a 12-row triangle, one STA $D012 per star.</span><span class="prog-meta">27 bytes @ $0300</span></button></li>
         </ul>
       </div>
 
